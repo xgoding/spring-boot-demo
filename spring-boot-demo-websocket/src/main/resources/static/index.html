@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>WebSocket Demo</title>
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="js/element-ui/2.14.0/theme-chalk/index.min.css">
     <style>
         .main-block {
             padding: 10px;
@@ -25,12 +25,12 @@
         <!--布局头部信息-->
         <el-header>
             <div class="main-block">
-                <div class="block-header"><span>连接类型</span></div>
+                <div class="block-header"><span>实现方式</span></div>
                 <div class="block-body">
                     <el-radio-group v-model="connectType" size="small" @change="connectTypeChange">
-                        <el-radio-button label="websocket">原生WebSocket</el-radio-button>
+                        <el-radio-button label="websocket">WebSocket</el-radio-button>
                         <el-radio-button label="socketJs">SocketJS</el-radio-button>
-                        <el-radio-button label="stomp">stomp</el-radio-button>
+                        <el-radio-button label="socketJsStomp">SocketJS + stomp</el-radio-button>
                     </el-radio-group>
                 </div>
             </div>
@@ -40,29 +40,176 @@
                 <div class="block-header"><span>控制开关</span></div>
                 <div class="block-body">
                     <el-button @click="handConnect" type="primary" :disabled="isConnected" size="small">手动连接</el-button>
-                    <el-button @click="handDisConnect" type="danger" :disabled="!isConnected" size="small">断开连接</el-button>
+                    <el-button @click="handDisConnect" type="danger" :disabled="!isConnected" size="small">断开连接
+                    </el-button>
                 </div>
             </div>
-            <!--端点类型-->
-            <div class="main-block">
-                <div class="block-header"><span>消息端点类型</span></div>
+            <!--websocket 连接方式-->
+            <div v-show="connectType == 'websocket'">
+                <!--WebSocket消息类型-->
+                <div class="main-block">
+                    <div class="block-header"><span>发送消息类型</span></div>
+                    <div class="block-body">
+                        <el-radio-group v-model="messageType" size="small" @change="messageTypeChange">
+                            <el-radio-button label="generic">泛型消息</el-radio-button>
+                            <el-radio-button label="text">文本消息</el-radio-button>
+                            <el-radio-button label="decorator">文本消息（装饰器模式）</el-radio-button>
+                            <el-radio-button label="binary">二进制消息</el-radio-button>
+                        </el-radio-group>
+                    </div>
+                </div>
+                <!--内容区域-->
+                <div class="main-block">
+                    <div class="block-header"><span>消息内容</span></div>
+                    <div class="block-body">
+                        <el-input v-model="message" placeholder="请输入发送的内容"></el-input>
+                        <el-button @click="sendMessage" type="primary" :disabled="!isConnected">发送消息</el-button>
+                    </div>
+                </div>
+            </div>
+            <div class="main-block" v-show="connectType == 'socketJs'">
+                <div class="block-header"><span>发送消息类型</span></div>
                 <div class="block-body">
                     <el-radio-group v-model="messageType" size="small" @change="messageTypeChange">
-                        <el-radio-button label="generic">泛型消息端点</el-radio-button>
-                        <el-radio-button label="text">文本消息端点</el-radio-button>
-                        <el-radio-button label="decorator">文本消息端点（装饰器）</el-radio-button>
-                        <el-radio-button label="binary">二进制消息端点</el-radio-button>
+                        <el-radio-button label="generic">泛型消息</el-radio-button>
+                        <el-radio-button label="text">文本消息</el-radio-button>
+                        <el-radio-button label="decorator">文本消息（装饰器模式）</el-radio-button>
+                        <el-radio-button label="binary">二进制消息</el-radio-button>
                     </el-radio-group>
                 </div>
             </div>
+            <!--SocketJS + stomp 连接方式-->
+            <div v-show="connectType == 'socketJsStomp'">
+                <el-row :gutter="20">
+                    <!--发送消息配置-->
+                    <el-col :span="12">
+                        <el-card class="box-card">
+                            <div slot="header" class="clearfix">
+                                <span>发送消息配置</span>
+                            </div>
+                            <el-row>
+                                <el-col :span="8">
+                                    <!--发送消息时是否增加消息前缀-->
+                                    <div class="main-block">
+                                        <div class="block-header"><span>是否携带前缀</span></div>
+                                        <div class="block-body">
+                                            <!--目的地址-->
+                                            <el-radio-group v-model="isAddDestinationPrefix" size="small">
+                                                <el-radio-button :label="true">携带</el-radio-button>
+                                                <el-radio-button :label="false">不携带</el-radio-button>
+                                            </el-radio-group>
+                                        </div>
+                                    </div>
+                                </el-col>
+                                <el-col :span="8" v-show="isAddDestinationPrefix">
+                                    <div class="main-block">
+                                        <div class="block-header"><span>ApplicationDestinationPrefix</span></div>
+                                        <div class="block-body">
+                                            <!--目的地址-->
+                                            <el-radio-group v-model="applicationDestinationPrefix" size="small">
+                                                <el-radio-button label="/coding">/coding</el-radio-button>
+                                                <el-radio-button label="/gaming">/gaming</el-radio-button>
+                                            </el-radio-group>
+                                        </div>
+                                    </div>
+                                </el-col>
+                                <el-col :span="8">
+                                    <div class="main-block">
+                                        <div class="block-header"><span>发送消息目的地</span></div>
+                                        <div class="block-body">
+                                            <!--目的地址-->
+                                            <el-radio-group v-model="destination" size="small">
+                                                <el-radio-button label="/destination1">目的地1</el-radio-button>
+                                                <el-radio-button label="/destination2">目的地2</el-radio-button>
+                                                <el-radio-button label="/destination3">目的地3</el-radio-button>
+                                            </el-radio-group>
+                                        </div>
+                                    </div>
+                                </el-col>
+                            </el-row>
+                            <el-row>
+                                <el-col :span="24">
+                                    <!--内容区域-->
+                                    <div class="main-block">
+                                        <div class="block-header"><span>消息内容</span></div>
+                                        <div class="block-body">
+                                            <el-input v-model="message" placeholder="请输入发送的内容">
+                                                <el-button @click="sendStompMessage" type="primary"
+                                                           :disabled="!isConnected" slot="append">发送消息
+                                                </el-button>
+                                            </el-input>
+                                        </div>
+                                    </div>
+                                </el-col>
+                            </el-row>
+                        </el-card>
+                    </el-col>
+                    <!--订阅消息配置-->
+                    <el-col :span="12">
+                        <el-card class="box-card">
+                            <div slot="header" class="clearfix">
+                                <span>订阅消息配置</span>
+                            </div>
+                            <el-row>
+                                <el-col :span="8">
+                                    <div class="main-block">
+                                        <div class="block-header"><span>是否携带前缀</span></div>
+                                        <div class="block-body">
+                                            <!--目的地址-->
+                                            <el-radio-group v-model="isAddBrokerPrefix" size="small">
+                                                <el-radio-button :label="true">携带</el-radio-button>
+                                                <el-radio-button :label="false">不携带</el-radio-button>
+                                            </el-radio-group>
+                                        </div>
+                                    </div>
+                                </el-col>
+                                <el-col :span="8" v-show="isAddBrokerPrefix">
+                                    <div class="main-block">
+                                        <div class="block-header"><span>SimpleBrokerDestinationPrefixes</span></div>
+                                        <div class="block-body">
+                                            <!--目的地址-->
+                                            <el-radio-group v-model="brokerDestinationPrefix" size="small">
+                                                <el-radio-button label="/topic">/topic</el-radio-button>
+                                                <el-radio-button label="/queue">/queue</el-radio-button>
+                                                <el-radio-button label="/xgoding">/xgoding</el-radio-button>
+                                            </el-radio-group>
+                                        </div>
+                                    </div>
+                                </el-col>
+                                <el-col :span="8">
+                                    <div class="main-block">
+                                        <div class="block-header"><span>订阅消息目的地</span></div>
+                                        <div class="block-body">
+                                            <!--目的地址-->
+                                            <el-radio-group v-model="destination" size="small">
+                                                <el-radio-button label="/destination1">目的地1</el-radio-button>
+                                                <el-radio-button label="/destination2">目的地2</el-radio-button>
+                                                <el-radio-button label="/destination3">目的地3</el-radio-button>
+                                            </el-radio-group>
+                                        </div>
+                                    </div>
+                                </el-col>
+                            </el-row>
+                            <el-row>
+                                <el-col :span="24">
+                                    <div class="main-block">
+                                        <div class="block-header"><span>订阅/取消订阅</span></div>
+                                        <div class="block-body">
+                                            <!--订阅消息目的地前缀-->
+                                            <el-button @click="subscribeMessage" type="primary" :disabled="!isConnected"
+                                                       size="small">订阅消息
+                                            </el-button>
+                                            <el-button @click="unSubscribeMessage" type="danger"
+                                                       :disabled="!isConnected" size="small">取消订阅
+                                            </el-button>
+                                        </div>
+                                    </div>
+                                </el-col>
+                            </el-row>
+                        </el-card>
+                    </el-col>
+                </el-row>
 
-            <!--内容区域-->
-            <div class="main-block">
-                <div class="block-header"><span>消息内容</span></div>
-                <div class="block-body">
-                    <el-input v-model="message" placeholder="请输入发送的内容"></el-input>
-                    <el-button @click="sendMessage" type="primary" :disabled="!isConnected">发送消息</el-button>
-                </div>
             </div>
 
             <!--相应消息-->
@@ -88,9 +235,9 @@
 </div>
 </body>
 <script src="js/sockjs.min.js"></script>
-<script src="https://cdn.bootcss.com/vue/2.5.21/vue.min.js"></script>
-<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.14.0/index.min.js"></script>
-<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.14.0/index.min.js"></script>
+<script src="js/stompjs@5.0.0/stomp.umd.min.js"></script>
+<script src="js/vue/2.5.21/vue.min.js"></script>
+<script src="js/element-ui/2.14.0/index.min.js"></script>
 <script>
     //泛型消息端点
     const wsGenericEndpoint = "ws://localhost:8080/demo/myHandler";
@@ -108,15 +255,25 @@
                 //连接状态
                 isConnected: false,
                 //连接类型
-                connectType: 'socketJs',
+                connectType: 'socketJsStomp',
                 //消息实体
                 message: null,
                 //websocket对象
                 ws: null,
                 //SocketJS对象
-                sock:null,
+                sock: null,
+                //Stomp 对象
+                stompClient: null,
                 //消息类型
                 messageType: 'generic',
+                //目的地址
+                destination: '/destination1',
+                //是否增加ApplicationDestinationPrefix
+                isAddDestinationPrefix: true,
+                applicationDestinationPrefix: '/coding',
+                //是否携带订阅消息前缀
+                isAddBrokerPrefix: true,
+                brokerDestinationPrefix: '/topic',
                 //服务器消息列表
                 msgDatas: []
             };
@@ -130,7 +287,8 @@
                     case "socketJs":
                         this.socketJsConnect();
                         break;
-                    case "stomp":
+                    case "socketJsStomp":
+                        this.socketJsStompConnect();
                         break;
                 }
             },
@@ -142,23 +300,26 @@
                     case "socketJs":
                         this.socketJsDisConnect();
                         break;
-                    case "stomp":
+                    case "socketJsStomp":
                         break;
                 }
             },
             /**
              * 消息类型改变
+             * @param value 改变后的值
              */
             messageTypeChange(value) {
                 if (this.isConnected) {
-                    this.webSocketDisconnect();
+                    this.handDisConnect();
                 }
-                this.webSocketConnect();
+                this.handConnect();
             },
             /**
              * 连接类型改变
+             * @param value 改变后的值，如何取得改变前的值？
              */
             connectTypeChange(value) {
+                console.log(value);
                 if (this.isConnected) {
                     this.webSocketDisconnect();
                 }
@@ -237,17 +398,17 @@
                 }
                 let that = this;
                 that.sock = new SockJS('http://localhost:8080/demo/myHandler');
-                that.sock.onopen = function() {
+                that.sock.onopen = function () {
                     console.log('open');
                     that.sock.send('test');
                     that.isConnected = true;
                 };
-                that.sock.onmessage = function(e) {
+                that.sock.onmessage = function (e) {
                     console.log('message', e.data);
                     //that.sock.close();
                 };
 
-                that.sock.onclose = function() {
+                that.sock.onclose = function () {
                     console.log('close');
                     that.isConnected = false;
                 };
@@ -257,6 +418,49 @@
              */
             socketJsDisConnect() {
                 this.sock.close();
+            },
+            /**
+             * stomp方式连接
+             */
+            socketJsStompConnect() {
+                let that = this;
+                if (this.isConnected) {
+                    that.$message.error('不能重复连接');
+                    return;
+                }
+                this.stompClient = new StompJs.Client({
+                    //brokerURL: 'ws://localhost:8080/demo/notification',
+                    connectHeaders: {
+                        login: 'user',
+                        passcode: 'password',
+                    },
+                    debug: function (str) {
+                        console.log(str);
+                    },
+                    reconnectDelay: 5000,
+                    heartbeatIncoming: 1000,
+                    heartbeatOutgoing: 1000,
+                });
+                this.stompClient.webSocketFactory = function () {
+                    return new SockJS("http://localhost:8080/demo/socketJsStomp");
+                };
+                this.stompClient.onConnect = function (frame) {
+                    console.log("Stomp onConnect:", frame);
+                    that.isConnected = true;
+                };
+                this.stompClient.onStompError = function (frame) {
+                    // Will be invoked in case of error encountered at Broker
+                    // Bad login/passcode typically will cause an error
+                    // Complaint brokers will set `message` header with a brief message. Body may contain details.
+                    // Compliant brokers will terminate the connection after any error
+                    console.log('Stomp Broker reported error: ' + frame.headers['message']);
+                    console.log('Stomp Additional details: ' + frame.body);
+                };
+                this.stompClient.onDisconnect = function (frame) {
+                    console.log("Stomp disconnect", frame);
+                    that.isConnected = false;
+                }
+                this.stompClient.activate();
             },
             /**
              * 发送文本消息
@@ -271,6 +475,46 @@
             sendPingPong() {
                 //There is no javascript API to send ping frames or receive pongs frame.
                 //https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
+            },
+            /**
+             * 发送STOMP消息
+             */
+            sendStompMessage() {
+                //向目的地发送消息
+                let that = this;
+                let addr = "";
+                addr = (that.isAddDestinationPrefix ? that.applicationDestinationPrefix : '') + that.destination;
+                this.stompClient.publish({
+                    destination: addr,
+                    body: that.message,
+                    headers: {
+                        priority: '9'
+                    }
+                });
+            },
+            /**
+             * 订阅消息
+             */
+            subscribeMessage() {
+                //订阅消息
+                let that = this;
+                let headers = {ack: 'client'}
+                let addr = '';
+                if (that.isAddBrokerPrefix) {
+                    addr += that.brokerDestinationPrefix + that.destination;
+                } else {
+                    addr = that.destination;
+                }
+                that.subscription = this.stompClient.subscribe(addr, function (message) {
+                    console.log("Stomp msg receive", message);
+                    that.msgDatas.push(JSON.parse(message.body));
+                }, headers);
+            },
+            /**
+             * 取消订阅
+             */
+            unSubscribeMessage() {
+
             }
         },
         mounted() {

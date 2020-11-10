@@ -35,7 +35,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry
-                //###### 原生方式 ########
+                //###### 第一部分：原生方式 ########
                 //原生端点握手成功后，返回101状态码
                 //添加泛型消息处理端点，不区分消息类型
                 .addHandler(myWebSocketHandler(), "/myHandler")
@@ -53,7 +53,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 //2. (列表)在指定的请求源列表内，列表内的请求源必须以http://或者https://开头
                 //3. (*)允许所有请求源
                 .setAllowedOrigins("http://xgoding.top")
-                //###### SocketJS FallBack ########
+
+                //###### 第二部分 SocketJS FallBack ########
                 //一：引入SocketJS原因：添加SockeJS 协议，通过fallback机制实现websocket相关API
                 //在网络传输过程中，可能会因为服务器代理(如nginx)或者其他原因，导致服务器不制止Upgrade header 或 关闭空闲的长连接，导致Websocket不可用，通过SocketJS协议实现WebSocket机制。
                 //二：实现方式主要包括三种：
@@ -70,7 +71,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .setClientLibraryUrl("http://localhost:8080/demo/js/sockjs.min.js")
                 //Spring SocketJS 默认心跳时间为25秒，
                 .setHeartbeatTime(1000)
-                //Spring SocketJS 支持定时处理心跳任务
+                //Spring SocketJS 支持定时处理心跳任务，实际应用场景是什么？
                 .setTaskScheduler(mySocketJSHeartBeatSchedulerTask())
                 //SocketJS 默认自动 添加CROS headers，此选项设置为true，不自动添加。
                 .setSupressCors(false)
@@ -81,6 +82,15 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 //SocketJS 设置服务端延时断开链接时间，默认5秒，用于继续向客户端发送数据
                 .setDisconnectDelay(1 * 1000);
 
+                //###### 第三部分 STOMP支持 ########
+                //WebSocket仅定义了支持文本和二进制数据传输，但是并未说明具体传输内容的格式。通过使用 STOMP 子协议 用于统一客户端和服务端定义消息内容的格式。
+                //一. STOMP 简介 和 好处
+                //二. 启用STOMP支持
+                // 基于WebSocket的STOMP支持，在 spring-messaging 和 spring-websocket 依赖包中。
+                // 1. @EnableWebSocketMessageBroker 启用websocket message broker
+                // 2. 注册stomp 端点
+                // 3. 设置destination 前缀
+                // 4. 采用内置（或专用）消息中间件，代理消息。
     }
 
     /**

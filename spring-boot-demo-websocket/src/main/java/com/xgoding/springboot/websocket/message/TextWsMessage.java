@@ -17,7 +17,7 @@ import org.springframework.web.socket.WebSocketMessage;
  */
 public class TextWsMessage extends AbstractWsMessage {
 
-    public TextWsMessage(String content) {
+    private TextWsMessage(String content) {
         super(content);
     }
 
