@@ -10,6 +10,9 @@
     <version>1.0</version>
     <modules>
         <module>spring-boot-demo-websocket</module>
+        <module>spring-boot-thumbnailator</module>
+        <module>spring-boot-mq</module>
+        <module>spring-boot-mq-rabbit</module>
     </modules>
 
     <properties>
