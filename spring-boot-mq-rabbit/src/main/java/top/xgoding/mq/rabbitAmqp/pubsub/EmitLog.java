@@ -1,4 +1,4 @@
-package top.xgoding.mq.rabbit.pubsub;
+package top.xgoding.mq.rabbitAmqp.pubsub;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;

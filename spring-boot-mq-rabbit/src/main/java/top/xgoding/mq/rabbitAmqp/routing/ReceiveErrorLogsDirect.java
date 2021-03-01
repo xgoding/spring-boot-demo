@@ -1,51 +1,51 @@
-package top.xgoding.mq.rabbit.pubsub;
+package top.xgoding.mq.rabbitAmqp.routing;
 
 import com.rabbitmq.client.*;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 /**
  * <p>
  *
  * </p>
  *
- * @package: top.xgoding.mq.rabbit.pubsub
+ * @package: top.xgoding.mq.rabbit.routing
  * @description:
  * @author: yxguang
  * @date: 2021/2/24
  * @version: V1.0
  * @modified: yxguang
  */
-public class ReceiveLogs {
-    public static final String EXCHANGE_NAME = "logs";
+public class ReceiveErrorLogsDirect {
+    public static final String EXCHANGE_NAME = "direct_logs";
 
     public static void main(String[] args) throws Exception{
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(ConnectionFactory.DEFAULT_HOST);
-
-        try (
+        try(
                 final Connection connection = factory.newConnection();
                 final Channel channel = connection.createChannel();
-
         ){
-            //定义交换器
-            channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.FANOUT);
-            //定义匿名队列
+            //定义exchange
+            channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
             final String queueName = channel.queueDeclare().getQueue();
-            //绑定交换器和队列
-            channel.queueBind(queueName, EXCHANGE_NAME, "");
 
-            System.out.println("[*] Waiting for message. ");
+            //定义绑定关系
+            channel.queueBind(queueName, EXCHANGE_NAME, "error");
+
+            System.out.println("[*] Waiting for messages.");
+
             DeliverCallback callback = new DeliverCallback() {
                 @Override
                 public void handle(String consumerTag, Delivery delivery) throws IOException {
-                    String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-                    System.out.println("[x] Received message : " + message);
+                    String message = new String(delivery.getBody(), "utf-8");
+                    final String routingKey = delivery.getEnvelope().getRoutingKey();
+                    System.out.println("[x] Received '" + routingKey + "' : '" + message + "'");
                 }
             };
-            //消费消息
-            channel.basicConsume(queueName, true, callback,consumerTag -> {});
+            channel.basicConsume(queueName,true,callback,consumerTag -> {
+
+            });
             System.in.read();
         }
     }

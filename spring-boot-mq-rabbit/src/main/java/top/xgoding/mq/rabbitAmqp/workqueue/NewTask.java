@@ -1,8 +1,7 @@
-package top.xgoding.mq.rabbit.workqueue;
+package top.xgoding.mq.rabbitAmqp.workqueue;
 
 import com.rabbitmq.client.*;
 
-import java.util.Random;
 import java.util.Scanner;
 import java.util.UUID;
 

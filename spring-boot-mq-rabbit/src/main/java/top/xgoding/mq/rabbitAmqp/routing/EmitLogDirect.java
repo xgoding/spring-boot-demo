@@ -1,4 +1,4 @@
-package top.xgoding.mq.rabbit.routing;
+package top.xgoding.mq.rabbitAmqp.routing;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;

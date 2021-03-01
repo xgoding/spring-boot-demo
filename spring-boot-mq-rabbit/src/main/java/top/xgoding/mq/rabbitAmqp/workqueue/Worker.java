@@ -1,4 +1,4 @@
-package top.xgoding.mq.rabbit.workqueue;
+package top.xgoding.mq.rabbitAmqp.workqueue;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;

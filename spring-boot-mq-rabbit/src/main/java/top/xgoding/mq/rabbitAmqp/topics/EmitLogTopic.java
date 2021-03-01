@@ -1,4 +1,4 @@
-package top.xgoding.mq.rabbit.topics;
+package top.xgoding.mq.rabbitAmqp.topics;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
