@@ -13,6 +13,8 @@
         <module>spring-boot-thumbnailator</module>
         <module>spring-boot-mq</module>
         <module>spring-boot-mq-rabbit</module>
+        <module>spring-boot-caching</module>
+        <module>spring-boot-logging</module>
     </modules>
 
     <properties>

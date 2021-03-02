@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: spring-boot-logging
+  profiles:
+    active: prod
+# 日志配置
+logging:
+  # 日志文件配置
+  file:
+    max-history: 7 # 日志文件要保存的天数
+    max-size: 10MB # 日志文件最大大小
+    # path: D:/logs/spring-boot-demo/ # 日志文件保存路径
+    name: D:/logs/spring-boot-demo/${spring.application.name}.log # 日志文件名称
+  # 日志分组
+  group:
+    xgoding: top.xgoding.springboot.logging.controller
+  # 日志级别
+  level:
+#    top:
+#      xgoding:
+#        springboot:
+#          logging:
+#            controller: debug
+    xgoding: debug
+#  config: classpath:logback-spring.xml
+
+# Spring Actuator 配置
+management:
+  endpoints:
+    # Actuator HTTP 配置项，对应 WebEndpointProperties 配置类
+    web:
+      exposure:
+        include: '*' # 需要开放的端点。默认值只打开 health 和 info 两个端点。通过设置 * ，可以开放所有端点。
+# 调试模式
+# debug: true
